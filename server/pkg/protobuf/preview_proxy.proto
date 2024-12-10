@@ -1,0 +1,23 @@
+syntax="proto3";
+
+option go_package = "github.com/alserok/preview_proxy/server/pkg/protobuf;proto";
+
+service PreviewProxy {
+  rpc DownloadThumbnails(DownloadThumbnailReq) returns(DownloadThumbnailRes);
+}
+
+message DownloadThumbnailReq {
+  repeated string video_urls = 1;
+  bool async = 2;
+}
+
+message DownloadThumbnailRes {
+  uint32 failed = 1;
+  uint32 total = 2;
+  repeated VideoThumbnail videos = 3;
+}
+
+message VideoThumbnail {
+  string video_url = 1;
+  string thumbnail_url = 2;
+}
