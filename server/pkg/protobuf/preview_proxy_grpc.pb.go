@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PreviewProxy_DownloadThumbnails_FullMethodName = "/PreviewProxy/DownloadThumbnails"
+	PreviewProxy_GetThumbnails_FullMethodName = "/PreviewProxy/GetThumbnails"
 )
 
 // PreviewProxyClient is the client API for PreviewProxy service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PreviewProxyClient interface {
-	DownloadThumbnails(ctx context.Context, in *DownloadThumbnailReq, opts ...grpc.CallOption) (*DownloadThumbnailRes, error)
+	GetThumbnails(ctx context.Context, in *GetThumbnailReq, opts ...grpc.CallOption) (*GetThumbnailRes, error)
 }
 
 type previewProxyClient struct {
@@ -37,10 +37,10 @@ func NewPreviewProxyClient(cc grpc.ClientConnInterface) PreviewProxyClient {
 	return &previewProxyClient{cc}
 }
 
-func (c *previewProxyClient) DownloadThumbnails(ctx context.Context, in *DownloadThumbnailReq, opts ...grpc.CallOption) (*DownloadThumbnailRes, error) {
+func (c *previewProxyClient) GetThumbnails(ctx context.Context, in *GetThumbnailReq, opts ...grpc.CallOption) (*GetThumbnailRes, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DownloadThumbnailRes)
-	err := c.cc.Invoke(ctx, PreviewProxy_DownloadThumbnails_FullMethodName, in, out, cOpts...)
+	out := new(GetThumbnailRes)
+	err := c.cc.Invoke(ctx, PreviewProxy_GetThumbnails_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *previewProxyClient) DownloadThumbnails(ctx context.Context, in *Downloa
 // All implementations must embed UnimplementedPreviewProxyServer
 // for forward compatibility.
 type PreviewProxyServer interface {
-	DownloadThumbnails(context.Context, *DownloadThumbnailReq) (*DownloadThumbnailRes, error)
+	GetThumbnails(context.Context, *GetThumbnailReq) (*GetThumbnailRes, error)
 	mustEmbedUnimplementedPreviewProxyServer()
 }
 
@@ -62,8 +62,8 @@ type PreviewProxyServer interface {
 // pointer dereference when methods are called.
 type UnimplementedPreviewProxyServer struct{}
 
-func (UnimplementedPreviewProxyServer) DownloadThumbnails(context.Context, *DownloadThumbnailReq) (*DownloadThumbnailRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DownloadThumbnails not implemented")
+func (UnimplementedPreviewProxyServer) GetThumbnails(context.Context, *GetThumbnailReq) (*GetThumbnailRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetThumbnails not implemented")
 }
 func (UnimplementedPreviewProxyServer) mustEmbedUnimplementedPreviewProxyServer() {}
 func (UnimplementedPreviewProxyServer) testEmbeddedByValue()                      {}
@@ -86,20 +86,20 @@ func RegisterPreviewProxyServer(s grpc.ServiceRegistrar, srv PreviewProxyServer)
 	s.RegisterService(&PreviewProxy_ServiceDesc, srv)
 }
 
-func _PreviewProxy_DownloadThumbnails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DownloadThumbnailReq)
+func _PreviewProxy_GetThumbnails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetThumbnailReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PreviewProxyServer).DownloadThumbnails(ctx, in)
+		return srv.(PreviewProxyServer).GetThumbnails(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PreviewProxy_DownloadThumbnails_FullMethodName,
+		FullMethod: PreviewProxy_GetThumbnails_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PreviewProxyServer).DownloadThumbnails(ctx, req.(*DownloadThumbnailReq))
+		return srv.(PreviewProxyServer).GetThumbnails(ctx, req.(*GetThumbnailReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var PreviewProxy_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PreviewProxyServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "DownloadThumbnails",
-			Handler:    _PreviewProxy_DownloadThumbnails_Handler,
+			MethodName: "GetThumbnails",
+			Handler:    _PreviewProxy_GetThumbnails_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
