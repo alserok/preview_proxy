@@ -30,6 +30,8 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    matrix:
+      directory: [ server, client ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
