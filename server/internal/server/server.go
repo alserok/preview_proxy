@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/alserok/preview_proxy/server/internal/cache"
+	"github.com/alserok/preview_proxy/server/internal/logger"
 	"github.com/alserok/preview_proxy/server/internal/server/grpc"
 	"github.com/alserok/preview_proxy/server/internal/service"
 )
@@ -14,10 +15,10 @@ const (
 	GRPC = iota
 )
 
-func New(t uint, service service.Service, cache cache.Cache) Server {
+func New(t uint, service service.Service, cache cache.Cache, log logger.Logger) Server {
 	switch t {
 	case GRPC:
-		return grpc.NewServer(service, cache)
+		return grpc.NewServer(service, cache, log)
 	default:
 		panic("invalid server type")
 	}
