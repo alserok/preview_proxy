@@ -9,6 +9,19 @@ type Logger interface {
 	Warn(msg string, v ...arg)
 }
 
+const (
+	Slog = iota
+)
+
+func NewLogger(t uint, env string) Logger {
+	switch t {
+	case Slog:
+		return newSlog(env)
+	default:
+		panic("invalid logger type")
+	}
+}
+
 func WithArg(key string, val any) arg {
 	return arg{key: key, val: val}
 }

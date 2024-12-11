@@ -6,6 +6,7 @@ import (
 	"github.com/alserok/preview_proxy/server/internal/cache"
 	"github.com/alserok/preview_proxy/server/internal/cache/redis"
 	"github.com/alserok/preview_proxy/server/internal/config"
+	"github.com/alserok/preview_proxy/server/internal/logger"
 	"github.com/alserok/preview_proxy/server/internal/server"
 	"github.com/alserok/preview_proxy/server/internal/service"
 	"os/signal"
@@ -13,7 +14,7 @@ import (
 )
 
 func MustStart(cfg *config.Config) {
-	log := 0
+	log := logger.NewLogger(logger.Slog, cfg.Env)
 
 	clients := service.Clients{
 		YoutubeAPIClient: api.NewYoutubeAPIClient(cfg.API.YoutubeAddr),
@@ -27,10 +28,9 @@ func MustStart(cfg *config.Config) {
 		log,
 	)
 
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
-	defer cancel()
-
 	go srvr.MustServe(cfg.Port)
 
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer cancel()
 	<-ctx.Done()
 }
