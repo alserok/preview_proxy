@@ -77,7 +77,10 @@ func (s *server) MustServe(ctx context.Context, port string) {
 		}
 	}()
 
-	serv := grpc.NewServer(mw.WithMiddlewareChain())
+	serv := grpc.NewServer(mw.WithMiddlewareChain(
+		mw.WithErrorHandler(),
+		mw.WithLogger(s.log),
+	))
 	defer serv.GracefulStop()
 
 	proto.RegisterPreviewProxyServer(serv, s)
