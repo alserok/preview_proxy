@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/alserok/preview_proxy/server/internal/cache"
 	"github.com/alserok/preview_proxy/server/internal/logger"
@@ -69,7 +70,7 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 	return &res, nil
 }
 
-func (s *server) MustServe(port string) {
+func (s *server) MustServe(ctx context.Context, port string) {
 	defer func() {
 		if err := s.cache.Close(); err != nil {
 			s.log.Error("failed to close cache", logger.WithArg("error", err.Error()))
@@ -77,6 +78,7 @@ func (s *server) MustServe(port string) {
 	}()
 
 	serv := grpc.NewServer(mw.WithMiddlewareChain())
+	defer serv.GracefulStop()
 
 	proto.RegisterPreviewProxyServer(serv, s)
 
@@ -84,8 +86,16 @@ func (s *server) MustServe(port string) {
 	if err != nil {
 		panic("failed to listen: " + err.Error())
 	}
+	defer func() {
+		_ = l.Close()
+	}()
 
-	if err = serv.Serve(l); err != nil {
-		panic("failed to serve: " + err.Error())
-	}
+	s.log.Info("server is running", logger.WithArg("port", port))
+	go func() {
+		if err = serv.Serve(l); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+			panic("failed to serve: " + err.Error())
+		}
+	}()
+
+	<-ctx.Done()
 }

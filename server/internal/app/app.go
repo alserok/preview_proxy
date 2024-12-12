@@ -19,8 +19,8 @@ func MustStart(cfg *config.Config) {
 	clients := service.Clients{
 		YoutubeAPIClient: api.NewYoutubeAPIClient(cfg.API.YoutubeAddr),
 	}
-
 	srvc := service.New(clients)
+
 	srvr := server.New(
 		server.GRPC,
 		srvc,
@@ -28,9 +28,8 @@ func MustStart(cfg *config.Config) {
 		log,
 	)
 
-	go srvr.MustServe(cfg.Port)
-
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
-	<-ctx.Done()
+
+	srvr.MustServe(ctx, cfg.Port)
 }

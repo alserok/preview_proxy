@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"github.com/alserok/preview_proxy/server/internal/cache"
 	"github.com/alserok/preview_proxy/server/internal/logger"
 	"github.com/alserok/preview_proxy/server/internal/server/grpc"
@@ -8,7 +9,7 @@ import (
 )
 
 type Server interface {
-	MustServe(port string)
+	MustServe(ctx context.Context, port string)
 }
 
 const (
