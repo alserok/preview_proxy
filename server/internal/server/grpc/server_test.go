@@ -82,12 +82,12 @@ func (s *GRPCServerSuite) TestSyncGetThumbnails() {
 			Total:  uint32(len(req.VideoUrls)),
 			Videos: []models.Video{
 				{
-					VideoURL:     req.VideoUrls[0],
-					ThumbnailURL: req.VideoUrls[0],
+					VideoURL:  req.VideoUrls[0],
+					Thumbnail: []byte("thumbnail"),
 				},
 				{
-					VideoURL:     req.VideoUrls[1],
-					ThumbnailURL: req.VideoUrls[1],
+					VideoURL:  req.VideoUrls[1],
+					Thumbnail: []byte("thumbnail"),
 				},
 			},
 		}, nil).
@@ -101,8 +101,8 @@ func (s *GRPCServerSuite) TestSyncGetThumbnails() {
 
 		s.mocks.cache.EXPECT().
 			Set(gomock.Any(), gomock.Eq(url), gomock.Eq(models.Video{
-				VideoURL:     url,
-				ThumbnailURL: url,
+				VideoURL:  url,
+				Thumbnail: []byte("thumbnail"),
 			})).
 			Return(nil).
 			Times(1)

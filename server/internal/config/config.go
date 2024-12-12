@@ -7,10 +7,6 @@ type Config struct {
 	Cache struct {
 		Addr string
 	}
-
-	API struct {
-		YoutubeAddr string
-	}
 }
 
 func MustLoad() *Config {

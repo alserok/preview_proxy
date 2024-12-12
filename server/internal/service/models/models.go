@@ -12,6 +12,6 @@ type DownloadThumbnailsRes struct {
 }
 
 type Video struct {
-	VideoURL     string `json:"video_url"`
-	ThumbnailURL string `json:"thumbnail_url"`
+	VideoURL  string `json:"video_url"`
+	Thumbnail []byte `json:"thumbnail"`
 }

@@ -58,8 +58,8 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 	res.Failed = data.Failed
 	for _, video := range append(data.Videos, videos...) {
 		res.Videos = append(res.Videos, &proto.Video{
-			VideoUrl:     video.VideoURL,
-			ThumbnailUrl: video.ThumbnailURL,
+			VideoUrl:  video.VideoURL,
+			Thumbnail: video.Thumbnail,
 		})
 
 		if err = s.cache.Set(ctx, video.VideoURL, video); err != nil {

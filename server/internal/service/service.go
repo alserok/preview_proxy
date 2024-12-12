@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/alserok/preview_proxy/server/internal/api"
 	"github.com/alserok/preview_proxy/server/internal/service/models"
+	"github.com/alserok/preview_proxy/server/internal/utils"
+	"net/url"
 	"sync"
 	"sync/atomic"
 )
@@ -34,15 +36,21 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 
 	syncCalls := func() {
 		for _, videoURL := range req.VideoURLs {
-			thumbnailURL, err := s.youtubeAPIClient.GetThumbnail(ctx, videoURL)
+			videoID, err := getVideoIDFromURL(videoURL)
+			if err != nil {
+				failed++
+				continue
+			}
+
+			thumbnailURL, err := s.youtubeAPIClient.GetThumbnail(ctx, videoID)
 			if err != nil {
 				failed++
 				continue
 			}
 
 			videos = append(videos, models.Video{
-				VideoURL:     videoURL,
-				ThumbnailURL: thumbnailURL,
+				VideoURL:  videoURL,
+				Thumbnail: thumbnailURL,
 			})
 		}
 	}
@@ -56,7 +64,11 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 		}
 		close(chVideoURLs)
 
-		chData := make(chan [2]string, workers)
+		type videoData struct {
+			videoURL  string
+			thumbnail []byte
+		}
+		chData := make(chan videoData, workers)
 		for i := 0; i < workers; i++ {
 			wg.Add(1)
 
@@ -70,13 +82,19 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 							return
 						}
 
-						thumbnailURL, err := s.youtubeAPIClient.GetThumbnail(ctx, videoURL)
+						videoID, err := getVideoIDFromURL(videoURL)
 						if err != nil {
 							atomic.AddInt64(&failed, 1)
 							continue
 						}
 
-						chData <- [2]string{videoURL, thumbnailURL}
+						thumbnailURL, err := s.youtubeAPIClient.GetThumbnail(ctx, videoID)
+						if err != nil {
+							atomic.AddInt64(&failed, 1)
+							continue
+						}
+
+						chData <- videoData{videoURL, thumbnailURL}
 					case <-ctx.Done():
 						return
 					}
@@ -91,8 +109,8 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 
 		for data := range chData {
 			videos = append(videos, models.Video{
-				VideoURL:     data[0],
-				ThumbnailURL: data[1],
+				VideoURL:  data.videoURL,
+				Thumbnail: data.thumbnail,
 			})
 		}
 	}
@@ -108,4 +126,19 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 		Total:  uint32(len(videos)),
 		Videos: videos,
 	}, nil
+}
+
+// https://www.youtube.com/watch?v=C91PNFPer_s
+func getVideoIDFromURL(videoURL string) (string, error) {
+	url, err := url.Parse(videoURL)
+	if err != nil {
+		return "", utils.NewError(err.Error(), utils.BadRequest)
+	}
+
+	videoID := url.Query().Get("v")
+	if videoID == "" {
+		return "", utils.NewError("video URL is not provided", utils.BadRequest)
+	}
+
+	return videoID, nil
 }

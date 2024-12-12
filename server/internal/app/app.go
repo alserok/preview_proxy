@@ -17,7 +17,7 @@ func MustStart(cfg *config.Config) {
 	log := logger.NewLogger(logger.Slog, cfg.Env)
 
 	clients := service.Clients{
-		YoutubeAPIClient: api.NewYoutubeAPIClient(cfg.API.YoutubeAddr),
+		YoutubeAPIClient: api.NewYoutubeAPIClient(),
 	}
 	srvc := service.New(clients)
 

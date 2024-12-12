@@ -19,5 +19,5 @@ message GetThumbnailRes {
 
 message Video {
   string video_url = 1;
-  string thumbnail_url = 2;
+  bytes thumbnail = 2;
 }
