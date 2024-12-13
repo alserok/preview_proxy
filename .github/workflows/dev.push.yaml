@@ -7,6 +7,9 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        directory: [ server, client ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -18,13 +21,19 @@ jobs:
 
       - name: Install Go dependencies
         run: |
+          cd ${{ matrix.directory }}
           go mod tidy
 
       - name: Run linters
         uses: golangci/golangci-lint-action@v4
+        with:
+          working-directory: ${{ matrix.directory }}
 
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        directory: [ server, client ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -36,7 +45,10 @@ jobs:
 
       - name: Install Go dependencies
         run: |
+          cd ${{ matrix.directory }}
           go mod tidy
 
       - name: Run tests
-        run: go test -v ./...
+        run: |
+          cd ${{ matrix.directory }}
+          go test ./...
