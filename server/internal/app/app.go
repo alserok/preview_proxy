@@ -15,6 +15,9 @@ import (
 
 func MustStart(cfg *config.Config) {
 	log := logger.NewLogger(logger.Slog, cfg.Env)
+	defer func() {
+		_ = log.Close()
+	}()
 
 	clients := service.Clients{
 		YoutubeAPIClient: api.NewYoutubeAPIClient(),

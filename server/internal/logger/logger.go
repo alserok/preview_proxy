@@ -7,10 +7,17 @@ type Logger interface {
 	Debug(msg string, v ...arg)
 	Error(msg string, v ...arg)
 	Warn(msg string, v ...arg)
+
+	Close() error
 }
 
 const (
 	Slog = iota
+)
+
+const (
+	dev  = "DEV"
+	prod = "PROD"
 )
 
 func NewLogger(t uint, env string) Logger {
