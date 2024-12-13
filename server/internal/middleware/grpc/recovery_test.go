@@ -46,7 +46,9 @@ func (s *RecoveryMWSuite) TestWithPanic() {
 		&proto.GetThumbnailReq{},
 		&grpc.UnaryServerInfo{},
 		func(ctx context.Context, req any) (interface{}, error) {
-			panic("some panic")
+			defer func() {
+				panic("some panic")
+			}()
 			return nil, nil
 		},
 	)
