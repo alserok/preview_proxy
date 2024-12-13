@@ -66,6 +66,56 @@ func (s *GRPCServerSuite) TestMustServe() {
 	s.s.MustServe(ctx, s.port)
 }
 
+func (s *GRPCServerSuite) TestAsyncGetThumbnails() {
+	req := proto.GetThumbnailReq{
+		VideoUrls: []string{"a", "b"},
+		Async:     true,
+	}
+
+	s.mocks.service.EXPECT().
+		GetThumbnails(gomock.Any(), gomock.Eq(models.DownloadThumbnailsReq{
+			VideoURLs: req.VideoUrls,
+			Async:     req.Async,
+		})).
+		Return(models.DownloadThumbnailsRes{
+			Failed: uint32(0),
+			Total:  uint32(len(req.VideoUrls)),
+			Videos: []models.Video{
+				{
+					VideoURL:  req.VideoUrls[0],
+					Thumbnail: []byte("thumbnail"),
+				},
+				{
+					VideoURL:  req.VideoUrls[1],
+					Thumbnail: []byte("thumbnail"),
+				},
+			},
+		}, nil).
+		Times(1)
+
+	for _, url := range req.VideoUrls {
+		s.mocks.cache.EXPECT().
+			Get(gomock.Any(), gomock.Eq(url), gomock.Any()).
+			Return(errors.New("not found")).
+			Times(1)
+
+		s.mocks.cache.EXPECT().
+			Set(gomock.Any(), gomock.Eq(url), gomock.Eq(models.Video{
+				VideoURL:  url,
+				Thumbnail: []byte("thumbnail"),
+			})).
+			Return(nil).
+			Times(1)
+	}
+
+	res, err := s.s.GetThumbnails(context.Background(), &req)
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
+	s.Require().Equal(len(req.VideoUrls), len(res.Videos))
+	s.Require().Equal(uint32(0), res.Failed)
+	s.Require().Equal(uint32(len(req.VideoUrls)), res.Total)
+}
+
 func (s *GRPCServerSuite) TestSyncGetThumbnails() {
 	req := proto.GetThumbnailReq{
 		VideoUrls: []string{"a", "b"},

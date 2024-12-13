@@ -78,8 +78,9 @@ func (s *server) MustServe(ctx context.Context, port string) {
 	}()
 
 	serv := grpc.NewServer(mw.WithMiddlewareChain(
-		mw.WithErrorHandler(),
+		mw.WithRecovery(s.log),
 		mw.WithLogger(s.log),
+		mw.WithErrorHandler(),
 	))
 	defer serv.GracefulStop()
 
