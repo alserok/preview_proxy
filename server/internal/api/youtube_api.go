@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/alserok/preview_proxy/server/internal/logger"
 	"github.com/alserok/preview_proxy/server/internal/utils"
 	"io"
 	"net/http"
@@ -35,12 +36,16 @@ type youtubeAPIClient struct {
 }
 
 func (cl *youtubeAPIClient) GetThumbnail(ctx context.Context, videoID string) ([]byte, error) {
+	log := logger.FromContext(ctx)
+
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("https://i.ytimg.com/vi/%s/%s.jpg", videoID, "default"),
 		nil)
 	if err != nil {
 		return nil, utils.NewError(err.Error(), utils.Internal)
 	}
+
+	log.Debug("sending api request", logger.WithArg("addr", req.URL.Host))
 
 	res, err := cl.cl.Do(req)
 	defer func() {
@@ -49,6 +54,8 @@ func (cl *youtubeAPIClient) GetThumbnail(ctx context.Context, videoID string) ([
 	if err != nil {
 		return nil, utils.NewError(err.Error(), utils.Internal)
 	}
+
+	log.Debug("received response", logger.WithArg("status", res.StatusCode))
 
 	switch res.StatusCode {
 	case http.StatusOK:

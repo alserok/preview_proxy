@@ -35,16 +35,16 @@ func (m *MockYoutubeAPI) EXPECT() *MockYoutubeAPIMockRecorder {
 }
 
 // GetThumbnail mocks base method.
-func (m *MockYoutubeAPI) GetThumbnail(ctx context.Context, videoURL string) (string, error) {
+func (m *MockYoutubeAPI) GetThumbnail(ctx context.Context, videoID string) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetThumbnail", ctx, videoURL)
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "GetThumbnail", ctx, videoID)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetThumbnail indicates an expected call of GetThumbnail.
-func (mr *MockYoutubeAPIMockRecorder) GetThumbnail(ctx, videoURL interface{}) *gomock.Call {
+func (mr *MockYoutubeAPIMockRecorder) GetThumbnail(ctx, videoID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetThumbnail", reflect.TypeOf((*MockYoutubeAPI)(nil).GetThumbnail), ctx, videoURL)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetThumbnail", reflect.TypeOf((*MockYoutubeAPI)(nil).GetThumbnail), ctx, videoID)
 }

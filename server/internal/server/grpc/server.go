@@ -31,6 +31,8 @@ type server struct {
 }
 
 func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) (*proto.GetThumbnailRes, error) {
+	s.log.Debug("received GetThumbnails request")
+
 	var (
 		videos    []models.Video
 		videoURLs []string
@@ -39,6 +41,7 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 		var video models.Video
 		if err := s.cache.Get(ctx, url, &video); err == nil {
 			videos = append(videos, video)
+			s.log.Warn("failed to get cached value", logger.WithArg("warn", err.Error()))
 			continue
 		}
 
@@ -53,6 +56,8 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 		return nil, fmt.Errorf("failed to download thumbnails: %w", err)
 	}
 
+	s.log.Debug("received service response")
+
 	var res proto.GetThumbnailRes
 	res.Total = data.Total
 	res.Failed = data.Failed
@@ -63,9 +68,11 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 		})
 
 		if err = s.cache.Set(ctx, video.VideoURL, video); err != nil {
-			s.log.Warn("failed to set cache value", logger.WithArg("error", err.Error()))
+			s.log.Warn("failed to set cache value", logger.WithArg("warn", err.Error()))
 		}
 	}
+
+	s.log.Debug("returned response")
 
 	return &res, nil
 }

@@ -37,6 +37,9 @@ func (s *GRPCServerSuite) SetupTest() {
 	s.mocks.service = service.NewMockService(s.ctrl)
 	s.mocks.cache = cache.NewMockCache(s.ctrl)
 	s.mocks.logger = logger.NewMockLogger(s.ctrl)
+	s.mocks.logger.EXPECT().
+		Debug(gomock.Any(), gomock.Any()).
+		AnyTimes()
 
 	s.port = "3001"
 	s.s = NewServer(s.mocks.service, s.mocks.cache, s.mocks.logger)

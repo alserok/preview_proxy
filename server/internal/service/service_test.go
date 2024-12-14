@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/alserok/preview_proxy/server/internal/api"
+	"github.com/alserok/preview_proxy/server/internal/logger"
 	"github.com/alserok/preview_proxy/server/internal/service/models"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
@@ -22,6 +23,7 @@ type ServiceSuite struct {
 
 	mocks struct {
 		youtubeAPIClient *api.MockYoutubeAPI
+		logger           *logger.MockLogger
 	}
 }
 
@@ -29,6 +31,10 @@ func (s *ServiceSuite) SetupTest() {
 	s.ctrl = gomock.NewController(s.T())
 
 	s.mocks.youtubeAPIClient = api.NewMockYoutubeAPI(s.ctrl)
+	s.mocks.logger = logger.NewMockLogger(s.ctrl)
+	s.mocks.logger.EXPECT().
+		Debug(gomock.Any(), gomock.Any()).
+		AnyTimes()
 
 	s.s = &service{
 		youtubeAPIClient: s.mocks.youtubeAPIClient,
@@ -55,7 +61,7 @@ func (s *ServiceSuite) TestSyncGetThumbnails() {
 			Times(1)
 	}
 
-	res, err := s.s.GetThumbnails(context.Background(), req)
+	res, err := s.s.GetThumbnails(context.WithValue(context.Background(), logger.CtxLogger, s.mocks.logger), req)
 	s.Require().NoError(err)
 	s.Require().NotNil(res)
 	s.Require().Equal(uint32(0), res.Failed)
@@ -79,7 +85,7 @@ func (s *ServiceSuite) TestAsyncGetThumbnails() {
 			Times(1)
 	}
 
-	res, err := s.s.GetThumbnails(context.Background(), req)
+	res, err := s.s.GetThumbnails(context.WithValue(context.Background(), logger.CtxLogger, s.mocks.logger), req)
 	s.Require().NoError(err)
 	s.Require().NotNil(res)
 	s.Require().Equal(uint32(0), res.Failed)

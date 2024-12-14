@@ -34,5 +34,6 @@ func MustStart(cfg *config.Config) {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 
+	log.Info("server is ready")
 	srvr.MustServe(ctx, cfg.Port)
 }
