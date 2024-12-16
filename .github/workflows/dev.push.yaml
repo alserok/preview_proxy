@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        directory: [ server, client ]
+        directory: [ server ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        directory: [ server, client ]
+        directory: [ server ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2

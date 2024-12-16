@@ -38,6 +38,10 @@ type slogLogger struct {
 }
 
 func (s *slogLogger) Close() error {
+	if s.f == nil {
+		return nil
+	}
+
 	return s.f.Close()
 }
 

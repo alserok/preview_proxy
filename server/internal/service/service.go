@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/alserok/preview_proxy/server/internal/api"
+	"github.com/alserok/preview_proxy/server/internal/logger"
 	"github.com/alserok/preview_proxy/server/internal/service/models"
 	"github.com/alserok/preview_proxy/server/internal/utils"
 	"net/url"
@@ -30,6 +31,7 @@ type service struct {
 
 func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnailsReq) (models.DownloadThumbnailsRes, error) {
 	var (
+		log    = logger.FromContext(ctx)
 		failed int64
 		videos []models.Video
 	)
@@ -38,12 +40,14 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 		for _, videoURL := range req.VideoURLs {
 			videoID, err := getVideoIDFromURL(videoURL)
 			if err != nil {
+				log.Warn("service: failed to get video ID", logger.WithArg("warn", err.Error()))
 				failed++
 				continue
 			}
 
 			thumbnailURL, err := s.youtubeAPIClient.GetThumbnail(ctx, videoID)
 			if err != nil {
+				log.Warn("service: failed to get video thumbnail from api client", logger.WithArg("warn", err.Error()))
 				failed++
 				continue
 			}
@@ -59,10 +63,12 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 		wg := &sync.WaitGroup{}
 
 		chVideoURLs := make(chan string, workers)
-		for _, videoURL := range req.VideoURLs {
-			chVideoURLs <- videoURL
-		}
-		close(chVideoURLs)
+		go func() {
+			for _, videoURL := range req.VideoURLs {
+				chVideoURLs <- videoURL
+			}
+			close(chVideoURLs)
+		}()
 
 		type videoData struct {
 			videoURL  string
@@ -84,12 +90,14 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 
 						videoID, err := getVideoIDFromURL(videoURL)
 						if err != nil {
+							log.Warn("service: failed to get video ID", logger.WithArg("warn", err.Error()))
 							atomic.AddInt64(&failed, 1)
 							continue
 						}
 
 						thumbnailURL, err := s.youtubeAPIClient.GetThumbnail(ctx, videoID)
 						if err != nil {
+							log.Warn("service: failed to get video thumbnail from api client", logger.WithArg("warn", err.Error()))
 							atomic.AddInt64(&failed, 1)
 							continue
 						}
@@ -116,10 +124,14 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 	}
 
 	if req.Async {
+		log.Debug("service: async mode enabled")
 		asyncCalls()
 	} else {
+		log.Debug("service: sync mode enabled")
 		syncCalls()
 	}
+
+	log.Debug("service: returned service response", logger.WithArg("total", len(videos)), logger.WithArg("failed", failed))
 
 	return models.DownloadThumbnailsRes{
 		Failed: uint32(failed),
