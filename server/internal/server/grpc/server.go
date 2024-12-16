@@ -31,7 +31,7 @@ type server struct {
 }
 
 func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) (*proto.GetThumbnailRes, error) {
-	s.log.Debug("received GetThumbnails request")
+	s.log.Debug("server: received GetThumbnails request")
 
 	var (
 		videos    []models.Video
@@ -40,26 +40,28 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 	for _, url := range req.VideoUrls {
 		var video models.Video
 		if err := s.cache.Get(ctx, url, &video); err != nil {
-			s.log.Warn("failed to get cached value", logger.WithArg("warn", err.Error()))
+			s.log.Warn("server: failed to get cached value", logger.WithArg("warn", err.Error()))
 			videoURLs = append(videoURLs, url)
 			continue
 		}
 
-		s.log.Debug("got cached value", logger.WithArg("key", url))
+		s.log.Debug("server: got cached value", logger.WithArg("key", url))
 		videos = append(videos, video)
 	}
+
+	s.log.Debug("server: cached values", logger.WithArg("amount", len(videos)))
 
 	data, err := s.srvc.GetThumbnails(ctx, models.DownloadThumbnailsReq{
 		VideoURLs: videoURLs,
 		Async:     req.Async,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to download thumbnails: %w", err)
+		return nil, fmt.Errorf("server: failed to download thumbnails: %w", err)
 	}
 
 	data.Videos = append(data.Videos, videos...)
 
-	s.log.Debug("received service response")
+	s.log.Debug("server: received service response")
 
 	var res proto.GetThumbnailRes
 	for _, video := range data.Videos {
@@ -69,13 +71,13 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 		})
 
 		if err = s.cache.Set(ctx, video.VideoURL, video); err != nil {
-			s.log.Warn("failed to set cache value", logger.WithArg("warn", err.Error()))
+			s.log.Warn("server: failed to set cache value", logger.WithArg("warn", err.Error()))
 		}
 	}
 	res.Total = uint32(len(req.VideoUrls))
 	res.Failed = uint32(len(req.VideoUrls) - len(data.Videos))
 
-	s.log.Debug("returned response")
+	s.log.Debug("server: returned response")
 
 	return &res, nil
 }

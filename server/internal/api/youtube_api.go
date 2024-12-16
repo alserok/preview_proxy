@@ -21,7 +21,7 @@ func NewYoutubeAPIClient() *youtubeAPIClient {
 		maxRetries:   3,
 		delay:        200 * time.Millisecond,
 	}
-	cl.Timeout = time.Millisecond * 600
+	cl.Timeout = time.Millisecond * 700
 
 	return &youtubeAPIClient{
 		cl: cl,
@@ -63,7 +63,7 @@ func (cl *youtubeAPIClient) GetThumbnail(ctx context.Context, videoID string) ([
 		return nil, utils.NewError(err.Error(), utils.Internal)
 	}
 
-	log.Debug("sending api request", logger.WithArg("addr", req.URL.Host))
+	log.Debug("youtube api client: sending api request", logger.WithArg("addr", req.URL.Host))
 
 	res, err := cl.cl.Do(req)
 	if err != nil {
@@ -73,7 +73,7 @@ func (cl *youtubeAPIClient) GetThumbnail(ctx context.Context, videoID string) ([
 		_ = res.Body.Close()
 	}()
 
-	log.Debug("received response", logger.WithArg("status", res.StatusCode))
+	log.Debug("youtube api client: received response from api", logger.WithArg("status", res.StatusCode))
 
 	switch res.StatusCode {
 	case http.StatusOK:

@@ -40,14 +40,14 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 		for _, videoURL := range req.VideoURLs {
 			videoID, err := getVideoIDFromURL(videoURL)
 			if err != nil {
-				log.Warn("failed to get video ID", logger.WithArg("warn", err.Error()))
+				log.Warn("service: failed to get video ID", logger.WithArg("warn", err.Error()))
 				failed++
 				continue
 			}
 
 			thumbnailURL, err := s.youtubeAPIClient.GetThumbnail(ctx, videoID)
 			if err != nil {
-				log.Warn("failed to get video thumbnail from api client", logger.WithArg("warn", err.Error()))
+				log.Warn("service: failed to get video thumbnail from api client", logger.WithArg("warn", err.Error()))
 				failed++
 				continue
 			}
@@ -90,14 +90,14 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 
 						videoID, err := getVideoIDFromURL(videoURL)
 						if err != nil {
-							log.Warn("failed to get video ID", logger.WithArg("warn", err.Error()))
+							log.Warn("service: failed to get video ID", logger.WithArg("warn", err.Error()))
 							atomic.AddInt64(&failed, 1)
 							continue
 						}
 
 						thumbnailURL, err := s.youtubeAPIClient.GetThumbnail(ctx, videoID)
 						if err != nil {
-							log.Warn("failed to get video thumbnail from api client", logger.WithArg("warn", err.Error()))
+							log.Warn("service: failed to get video thumbnail from api client", logger.WithArg("warn", err.Error()))
 							atomic.AddInt64(&failed, 1)
 							continue
 						}
@@ -124,14 +124,14 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 	}
 
 	if req.Async {
-		log.Debug("async mode enabled")
+		log.Debug("service: async mode enabled")
 		asyncCalls()
 	} else {
-		log.Debug("sync mode enabled")
+		log.Debug("service: sync mode enabled")
 		syncCalls()
 	}
 
-	log.Debug("returned service response", logger.WithArg("total", len(videos)), logger.WithArg("failed", failed))
+	log.Debug("service: returned service response", logger.WithArg("total", len(videos)), logger.WithArg("failed", failed))
 
 	return models.DownloadThumbnailsRes{
 		Failed: uint32(failed),
