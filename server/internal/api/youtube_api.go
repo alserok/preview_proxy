@@ -19,9 +19,9 @@ func NewYoutubeAPIClient() *youtubeAPIClient {
 	cl.Transport = &retryTransport{
 		RoundTripper: http.DefaultTransport,
 		maxRetries:   3,
-		delay:        100 * time.Millisecond,
+		delay:        200 * time.Millisecond,
 	}
-	cl.Timeout = time.Millisecond * 350
+	cl.Timeout = time.Millisecond * 600
 
 	return &youtubeAPIClient{
 		cl: cl,
