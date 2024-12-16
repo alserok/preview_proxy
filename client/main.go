@@ -64,7 +64,7 @@ func main() {
 		default:
 			videoURLs := strings.Split(val, " ")
 
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(len(videoURLs)*15)*time.Second)
 
 			switch m {
 			case async:
