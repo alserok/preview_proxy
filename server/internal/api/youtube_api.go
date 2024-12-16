@@ -16,19 +16,37 @@ type YoutubeAPI interface {
 
 func NewYoutubeAPIClient() *youtubeAPIClient {
 	cl := http.DefaultClient
-	cl.Transport = struct {
-		http.RoundTripper
-		maxRetries int
-		delay      time.Duration
-	}{
+	cl.Transport = &retryTransport{
 		RoundTripper: http.DefaultTransport,
 		maxRetries:   3,
 		delay:        30 * time.Millisecond,
 	}
+	cl.Timeout = time.Millisecond * 300
 
 	return &youtubeAPIClient{
 		cl: cl,
 	}
+}
+
+type retryTransport struct {
+	RoundTripper http.RoundTripper
+	maxRetries   int
+	delay        time.Duration
+}
+
+func (rt *retryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	var err error
+	var resp *http.Response
+
+	for i := 0; i < rt.maxRetries; i++ {
+		resp, err = rt.RoundTripper.RoundTrip(req)
+		if err == nil {
+			return resp, nil
+		}
+		time.Sleep(rt.delay)
+	}
+
+	return nil, err
 }
 
 type youtubeAPIClient struct {
@@ -48,12 +66,12 @@ func (cl *youtubeAPIClient) GetThumbnail(ctx context.Context, videoID string) ([
 	log.Debug("sending api request", logger.WithArg("addr", req.URL.Host))
 
 	res, err := cl.cl.Do(req)
-	defer func() {
-		_ = res.Body.Close()
-	}()
 	if err != nil {
 		return nil, utils.NewError(err.Error(), utils.Internal)
 	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	log.Debug("received response", logger.WithArg("status", res.StatusCode))
 
@@ -61,7 +79,7 @@ func (cl *youtubeAPIClient) GetThumbnail(ctx context.Context, videoID string) ([
 	case http.StatusOK:
 		b, err := io.ReadAll(res.Body)
 		if err != nil {
-			panic(err.Error())
+			return nil, utils.NewError("failed to read body", utils.Internal)
 		}
 		return b, nil
 	case http.StatusNotFound:
