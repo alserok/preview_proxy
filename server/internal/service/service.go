@@ -63,10 +63,12 @@ func (s *service) GetThumbnails(ctx context.Context, req models.DownloadThumbnai
 		wg := &sync.WaitGroup{}
 
 		chVideoURLs := make(chan string, workers)
-		for _, videoURL := range req.VideoURLs {
-			chVideoURLs <- videoURL
-		}
-		close(chVideoURLs)
+		go func() {
+			for _, videoURL := range req.VideoURLs {
+				chVideoURLs <- videoURL
+			}
+			close(chVideoURLs)
+		}()
 
 		type videoData struct {
 			videoURL  string

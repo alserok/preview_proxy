@@ -38,7 +38,7 @@ func (s *YoutubeAPIClientSuite) SetupTest() {
 }
 
 func (s *YoutubeAPIClientSuite) TestGetThumbnail() {
-	previewURL, err := s.client.GetThumbnail(context.WithValue(context.Background(), logger.CtxLogger, s.mocks.logger), "ps--Onn3p_s")
+	previewURL, err := s.client.GetThumbnail(context.WithValue(context.Background(), logger.CtxLogger, s.mocks.logger), "3061eHuACEU")
 	s.Require().NoError(err)
 	s.Require().NotEmpty(previewURL)
 }

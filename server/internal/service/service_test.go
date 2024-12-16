@@ -71,8 +71,14 @@ func (s *ServiceSuite) TestSyncGetThumbnails() {
 
 func (s *ServiceSuite) TestAsyncGetThumbnails() {
 	req := models.DownloadThumbnailsReq{
-		VideoURLs: []string{"https://www.youtube.com/watch?v=lDLT7s0TAYs", "https://www.youtube.com/watch?v=3061eHuACEU"},
-		Async:     true,
+		VideoURLs: []string{
+			"https://www.youtube.com/watch?v=lDLT7s0TAYs",
+			"https://www.youtube.com/watch?v=3061eHuACEU",
+			"https://www.youtube.com/watch?v=3061eHuACEU",
+			"https://www.youtube.com/watch?v=3061eHuACEU",
+			"https://www.youtube.com/watch?v=3061eHuACEU",
+			"https://www.youtube.com/watch?v=3061eHuACEU"},
+		Async: true,
 	}
 
 	for _, videoURL := range req.VideoURLs {

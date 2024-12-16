@@ -19,9 +19,9 @@ func NewYoutubeAPIClient() *youtubeAPIClient {
 	cl.Transport = &retryTransport{
 		RoundTripper: http.DefaultTransport,
 		maxRetries:   3,
-		delay:        30 * time.Millisecond,
+		delay:        100 * time.Millisecond,
 	}
-	cl.Timeout = time.Millisecond * 300
+	cl.Timeout = time.Millisecond * 350
 
 	return &youtubeAPIClient{
 		cl: cl,
@@ -79,8 +79,9 @@ func (cl *youtubeAPIClient) GetThumbnail(ctx context.Context, videoID string) ([
 	case http.StatusOK:
 		b, err := io.ReadAll(res.Body)
 		if err != nil {
-			return nil, utils.NewError("failed to read body", utils.Internal)
+			return nil, utils.NewError(fmt.Sprintf("failed to read body: %s", err.Error()), utils.Internal)
 		}
+
 		return b, nil
 	case http.StatusNotFound:
 		return nil, utils.NewError("video not found", utils.NotFound)

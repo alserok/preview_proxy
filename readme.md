@@ -1,4 +1,7 @@
 ## Server
+  Interacts with external api to get videos thumbnail, returns response with slices
+  of bytes and amount of failed requests.
+
 
     go run main.go
 
