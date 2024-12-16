@@ -21,7 +21,7 @@ func newSlog(env string) *slogLogger {
 			panic("failed to open .logs file: " + err.Error())
 		}
 
-		l = slog.New(slog.NewTextHandler(io.MultiWriter(os.Stdout, f), &slog.HandlerOptions{Level: slog.LevelInfo}))
+		l = slog.New(slog.NewJSONHandler(io.MultiWriter(os.Stdout, f), &slog.HandlerOptions{Level: slog.LevelInfo}))
 		output = f
 	}
 
