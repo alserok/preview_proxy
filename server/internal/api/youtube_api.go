@@ -39,7 +39,7 @@ func (cl *youtubeAPIClient) GetThumbnail(ctx context.Context, videoID string) ([
 	log := logger.FromContext(ctx)
 
 	req, err := http.NewRequest(http.MethodGet,
-		fmt.Sprintf("https://i.ytimg.com/vi/%s/%s.jpg", videoID, "default"),
+		fmt.Sprintf("https://i.ytimg.com/vi/%s/%s.jpg", videoID, "maxresdefault"),
 		nil)
 	if err != nil {
 		return nil, utils.NewError(err.Error(), utils.Internal)

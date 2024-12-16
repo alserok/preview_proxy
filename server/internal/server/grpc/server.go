@@ -39,13 +39,14 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 	)
 	for _, url := range req.VideoUrls {
 		var video models.Video
-		if err := s.cache.Get(ctx, url, &video); err == nil {
-			videos = append(videos, video)
+		if err := s.cache.Get(ctx, url, &video); err != nil {
 			s.log.Warn("failed to get cached value", logger.WithArg("warn", err.Error()))
+			videoURLs = append(videoURLs, url)
 			continue
 		}
 
-		videoURLs = append(videoURLs, url)
+		s.log.Debug("got cached value", logger.WithArg("key", url))
+		videos = append(videos, video)
 	}
 
 	data, err := s.srvc.GetThumbnails(ctx, models.DownloadThumbnailsReq{
@@ -56,12 +57,12 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 		return nil, fmt.Errorf("failed to download thumbnails: %w", err)
 	}
 
+	data.Videos = append(data.Videos, videos...)
+
 	s.log.Debug("received service response")
 
 	var res proto.GetThumbnailRes
-	res.Total = data.Total
-	res.Failed = data.Failed
-	for _, video := range append(data.Videos, videos...) {
+	for _, video := range data.Videos {
 		res.Videos = append(res.Videos, &proto.Video{
 			VideoUrl:  video.VideoURL,
 			Thumbnail: video.Thumbnail,
@@ -71,6 +72,8 @@ func (s *server) GetThumbnails(ctx context.Context, req *proto.GetThumbnailReq) 
 			s.log.Warn("failed to set cache value", logger.WithArg("warn", err.Error()))
 		}
 	}
+	res.Total = uint32(len(req.VideoUrls))
+	res.Failed = uint32(len(req.VideoUrls) - len(data.Videos))
 
 	s.log.Debug("returned response")
 
@@ -89,7 +92,6 @@ func (s *server) MustServe(ctx context.Context, port string) {
 		mw.WithLogger(s.log),
 		mw.WithErrorHandler(),
 	))
-	defer serv.GracefulStop()
 
 	proto.RegisterPreviewProxyServer(serv, s)
 
@@ -97,9 +99,6 @@ func (s *server) MustServe(ctx context.Context, port string) {
 	if err != nil {
 		panic("failed to listen: " + err.Error())
 	}
-	defer func() {
-		_ = l.Close()
-	}()
 
 	s.log.Info("server is running", logger.WithArg("port", port))
 	go func() {
@@ -109,4 +108,7 @@ func (s *server) MustServe(ctx context.Context, port string) {
 	}()
 
 	<-ctx.Done()
+
+	serv.GracefulStop()
+	_ = l.Close()
 }
