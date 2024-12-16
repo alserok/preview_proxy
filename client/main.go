@@ -13,6 +13,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -63,20 +64,24 @@ func main() {
 		default:
 			videoURLs := strings.Split(val, " ")
 
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+
 			switch m {
 			case async:
-				serverAsync(client, videoURLs)
+				serverAsync(ctx, client, videoURLs)
 			case localAsync:
-				clientAsync(client, videoURLs)
+				clientAsync(ctx, client, videoURLs)
 			default:
-				defaultSync(client, videoURLs)
+				defaultSync(ctx, client, videoURLs)
 			}
+
+			cancel()
 		}
 	}
 }
 
-func serverAsync(client proto.PreviewProxyClient, videoURLs []string) {
-	res, err := client.GetThumbnails(context.Background(), &proto.GetThumbnailReq{
+func serverAsync(ctx context.Context, client proto.PreviewProxyClient, videoURLs []string) {
+	res, err := client.GetThumbnails(ctx, &proto.GetThumbnailReq{
 		VideoUrls: videoURLs,
 		Async:     true,
 	})
@@ -99,7 +104,7 @@ func serverAsync(client proto.PreviewProxyClient, videoURLs []string) {
 	fmt.Println()
 }
 
-func clientAsync(client proto.PreviewProxyClient, videoURLs []string) {
+func clientAsync(ctx context.Context, client proto.PreviewProxyClient, videoURLs []string) {
 	wg := sync.WaitGroup{}
 	wg.Add(len(videoURLs))
 	chData := make(chan *proto.GetThumbnailRes, len(videoURLs))
@@ -108,7 +113,7 @@ func clientAsync(client proto.PreviewProxyClient, videoURLs []string) {
 		go func() {
 			defer wg.Done()
 
-			res, err := client.GetThumbnails(context.Background(), &proto.GetThumbnailReq{
+			res, err := client.GetThumbnails(ctx, &proto.GetThumbnailReq{
 				VideoUrls: []string{url},
 				Async:     false,
 			})
@@ -145,8 +150,8 @@ func clientAsync(client proto.PreviewProxyClient, videoURLs []string) {
 	fmt.Println()
 }
 
-func defaultSync(client proto.PreviewProxyClient, videoURLS []string) {
-	res, err := client.GetThumbnails(context.Background(), &proto.GetThumbnailReq{
+func defaultSync(ctx context.Context, client proto.PreviewProxyClient, videoURLS []string) {
+	res, err := client.GetThumbnails(ctx, &proto.GetThumbnailReq{
 		VideoUrls: videoURLS,
 		Async:     false,
 	})
